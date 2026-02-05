@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Event Registration Viewer</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    select {
+      display: block;
+      margin: 0 auto 20px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background: #2c3e50;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background: #f2f2f2;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Event-wise Registered Students</h1>
+
+<select id="eventSelect">
+  <option value="">-- Select Event --</option>
+</select>
+
+<table id="dataTable" class="hidden">
+  <thead>
+  <tr>
+    <th>S.No</th>
+    <th>Full Name</th>
+    <th>Email</th>
+    <th>Mobile</th>
+    <th>College</th>
+  </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+  const SHEET_ID = "1I5r5Zy69lSOB3-0_kjm94Twe20zfU_Xz3oLbmRmXe7A";
+  const SHEET_NAME = "Form Responses 1";
+
+  const IGNORE_VALUES = [
+    "Not interested in Slot 1",
+    "Not interested in Slot 2",
+    "Not Interested"
+  ];
+
+  const url =
+          `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+  let eventData = {};
+
+  fetch(url)
+          .then(res => res.text())
+          .then(data => {
+            const json = JSON.parse(data.substring(47).slice(0, -2));
+            const rows = json.table.rows;
+
+            rows.forEach(row => {
+              const student = {
+                name: row.c[2]?.v || "",
+                email: row.c[3]?.v || "",
+                mobile: row.c[4]?.v || "",
+                college: row.c[7]?.v || ""
+              };
+
+              const slot1 = row.c[10]?.v;
+              const slot2 = row.c[11]?.v;
+
+              [slot1, slot2].forEach(event => {
+                if (event && !IGNORE_VALUES.includes(event)) {
+                  eventData[event] = eventData[event] || [];
+                  eventData[event].push(student);
+                }
+              });
+            });
+
+            const select = document.getElementById("eventSelect");
+            Object.keys(eventData).sort().forEach(event => {
+              const option = document.createElement("option");
+              option.value = event;
+              option.textContent = event;
+              select.appendChild(option);
+            });
+          });
+
+  document.getElementById("eventSelect").addEventListener("change", function () {
+    const eventName = this.value;
+    const table = document.getElementById("dataTable");
+    const tbody = document.getElementById("tableBody");
+
+    tbody.innerHTML = "";
+
+    if (!eventName) {
+      table.classList.add("hidden");
+      return;
+    }
+
+    eventData[eventName].forEach((s, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${s.name}</td>
+          <td>${s.email}</td>
+          <td>${s.mobile}</td>
+          <td>${s.college}</td>
+        </tr>
+      `;
+    });
+
+    table.classList.remove("hidden");
+  });
+</script>
+
+</body>
+</html>
