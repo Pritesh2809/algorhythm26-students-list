@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ALGORHYTHM'26 – Mobile Dashboard</title>
+  <title>ALGORHYTHM'26 – Dashboard</title>
 
   <style>
     :root{
@@ -26,12 +26,12 @@
     /* HEADER */
     .header{
       text-align:center;
-      margin-bottom:18px;
+      margin-bottom:16px;
     }
     .header h1{
       margin:0;
-      color:var(--primary);
       font-size:1.4rem;
+      color:var(--primary);
     }
     .header p{
       margin:4px 0 0;
@@ -66,38 +66,17 @@
       color:var(--accent);
     }
 
-    /* TOP 3 */
+    /* LEADERBOARD */
     .leader-row{
       display:flex;
       justify-content:space-between;
       align-items:center;
       padding:10px 12px;
-      border-radius:12px;
       background:#f1f5f9;
+      border-radius:12px;
       margin-bottom:10px;
     }
-    .leader-row:last-child{margin-bottom:0}
-    .leader-left{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .rank-badge{
-      width:32px;
-      height:32px;
-      border-radius:50%;
-      background:var(--accent);
-      color:white;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:700;
-    }
-    .leader-name{
-      font-weight:600;
-      font-size:14px;
-    }
-    .leader-count{
+    .rank{
       font-weight:700;
       color:var(--primary);
     }
@@ -117,35 +96,34 @@
       font-weight:600;
     }
 
-    /* STUDENT CARD */
-    .student-card{
+    /* TABLE */
+    .table-wrapper{
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+
+    table{
+      width:100%;
+      min-width:720px;
+      border-collapse:collapse;
+    }
+
+    thead{
+      background:var(--primary);
+      color:white;
+      position:sticky;
+      top:0;
+    }
+
+    th,td{
+      padding:12px;
+      font-size:14px;
+      text-align:left;
+      border-bottom:1px solid #e5e7eb;
+    }
+
+    tbody tr:nth-child(even){
       background:#f9fafb;
-      border-radius:14px;
-      padding:14px;
-      margin-bottom:12px;
-    }
-    .student-name{
-      font-weight:700;
-      color:var(--primary);
-    }
-    .student-meta{
-      font-size:13px;
-      color:var(--muted);
-      margin-top:4px;
-    }
-    .student-tags{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:8px;
-    }
-    .tag{
-      background:#e0f2fe;
-      color:#0369a1;
-      padding:4px 10px;
-      border-radius:20px;
-      font-size:12px;
-      font-weight:600;
     }
 
     .hidden{display:none}
@@ -167,7 +145,7 @@
   </div>
 </div>
 
-<!-- TOP 3 REFERRALS -->
+<!-- TOP 3 -->
 <div class="section">
   <div class="section-title">🏆 Top 3 Referrals</div>
   <div id="overallLeaderboard"></div>
@@ -198,9 +176,24 @@
     <button id="exportBtn">Export Event to Excel</button>
   </div>
 
+  <!-- TABLE SECTION -->
   <div class="section">
     <div class="section-title">Participants</div>
-    <div id="studentList"></div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Mobile</th>
+          <th>Referral</th>
+          <th>College</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
   </div>
 
 </div>
@@ -246,11 +239,8 @@
             .forEach(([r,c],i)=>{
               overallLeaderboard.innerHTML+=`
         <div class="leader-row">
-          <div class="leader-left">
-            <div class="rank-badge">${i+1}</div>
-            <div class="leader-name">${r}</div>
-          </div>
-          <div class="leader-count">${c}</div>
+          <span class="rank">#${i+1} ${r}</span>
+          <strong>${c}</strong>
         </div>`;
             });
   }
@@ -264,31 +254,34 @@
   }
 
   eventSelect.onchange=()=>{
-    if(!eventSelect.value)return document.getElementById("eventSection").classList.add("hidden");
+    if(!eventSelect.value){
+      eventSection.classList.add("hidden");
+      return;
+    }
     currentData=eventData[eventSelect.value];
     eventCountText.textContent=currentData.length;
-    renderStudents(currentData);
-    document.getElementById("eventSection").classList.remove("hidden");
+    renderTable(currentData);
+    eventSection.classList.remove("hidden");
   };
 
-  function renderStudents(data){
-    studentList.innerHTML="";
-    data.forEach(s=>{
-      studentList.innerHTML+=`
-      <div class="student-card">
-        <div class="student-name">${s.name}</div>
-        <div class="student-meta">${s.college}</div>
-        <div class="student-tags">
-          <span class="tag">${s.mobile}</span>
-          ${s.referral?`<span class="tag">${s.referral}</span>`:""}
-        </div>
-      </div>`;
+  function renderTable(data){
+    tableBody.innerHTML="";
+    data.forEach((s,i)=>{
+      tableBody.innerHTML+=`
+      <tr>
+        <td>${i+1}</td>
+        <td>${s.name}</td>
+        <td>${s.email}</td>
+        <td>${s.mobile}</td>
+        <td>${s.referral}</td>
+        <td>${s.college}</td>
+      </tr>`;
     });
   }
 
   searchInput.oninput=()=>{
     const q=searchInput.value.toLowerCase();
-    renderStudents(currentData.filter(s=>
+    renderTable(currentData.filter(s=>
             s.name.toLowerCase().includes(q)||
             s.referral.toLowerCase().includes(q)||
             s.mobile.includes(q)||
