@@ -13,33 +13,17 @@
       --card:#ffffff;
       --muted:#6b7280;
     }
-
     *{box-sizing:border-box}
-
     body{
       margin:0;
       font-family:system-ui,-apple-system,sans-serif;
       background:var(--bg);
       padding:14px;
     }
+    .header{text-align:center;margin-bottom:16px}
+    .header h1{margin:0;font-size:1.4rem;color:var(--primary)}
+    .header p{margin:4px 0 0;font-size:13px;color:var(--muted)}
 
-    /* HEADER */
-    .header{
-      text-align:center;
-      margin-bottom:16px;
-    }
-    .header h1{
-      margin:0;
-      font-size:1.4rem;
-      color:var(--primary);
-    }
-    .header p{
-      margin:4px 0 0;
-      font-size:13px;
-      color:var(--muted);
-    }
-
-    /* SECTION */
     .section{
       background:var(--card);
       border-radius:16px;
@@ -47,41 +31,21 @@
       margin-bottom:16px;
       box-shadow:0 8px 18px rgba(0,0,0,.06);
     }
-    .section-title{
-      font-weight:700;
-      color:var(--primary);
-      margin-bottom:12px;
-      font-size:15px;
-    }
+    .section-title{font-weight:700;color:var(--primary);margin-bottom:12px}
 
-    /* STATS */
-    .stat-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
-    .stat-value{
-      font-size:1.6rem;
-      font-weight:800;
-      color:var(--accent);
-    }
+    .stat-row{display:flex;justify-content:space-between;align-items:center}
+    .stat-value{font-size:1.6rem;font-weight:800;color:var(--accent)}
 
-    /* LEADERBOARD */
     .leader-row{
       display:flex;
       justify-content:space-between;
-      align-items:center;
       padding:10px 12px;
       background:#f1f5f9;
       border-radius:12px;
       margin-bottom:10px;
     }
-    .rank{
-      font-weight:700;
-      color:var(--primary);
-    }
+    .rank{font-weight:700;color:var(--primary)}
 
-    /* INPUTS */
     select,input,button{
       width:100%;
       padding:14px;
@@ -96,36 +60,11 @@
       font-weight:600;
     }
 
-    /* TABLE */
-    .table-wrapper{
-      overflow-x:auto;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    table{
-      width:100%;
-      min-width:720px;
-      border-collapse:collapse;
-    }
-
-    thead{
-      background:var(--primary);
-      color:white;
-      position:sticky;
-      top:0;
-    }
-
-    th,td{
-      padding:12px;
-      font-size:14px;
-      text-align:left;
-      border-bottom:1px solid #e5e7eb;
-    }
-
-    tbody tr:nth-child(even){
-      background:#f9fafb;
-    }
-
+    .table-wrapper{overflow-x:auto}
+    table{width:100%;min-width:720px;border-collapse:collapse}
+    thead{background:var(--primary);color:white}
+    th,td{padding:12px;font-size:14px;border-bottom:1px solid #e5e7eb}
+    tbody tr:nth-child(even){background:#f9fafb}
     .hidden{display:none}
   </style>
 </head>
@@ -137,7 +76,6 @@
   <p>Mobile Admin Dashboard</p>
 </div>
 
-<!-- OVERALL STATS -->
 <div class="section">
   <div class="stat-row">
     <span>Total Registrations</span>
@@ -145,20 +83,17 @@
   </div>
 </div>
 
-<!-- TOP 3 -->
 <div class="section">
   <div class="section-title">🏆 Top 3 Referrals</div>
   <div id="overallLeaderboard"></div>
 </div>
 
-<!-- EVENT SELECT -->
 <div class="section">
   <select id="eventSelect">
     <option value="">Select Event</option>
   </select>
 </div>
 
-<!-- EVENT DETAILS -->
 <div id="eventSection" class="hidden">
 
   <div class="section">
@@ -169,14 +104,13 @@
   </div>
 
   <div class="section">
-    <input id="searchInput" placeholder="Search name / referral / mobile">
+    <input id="searchInput" placeholder="Search name / referral / mobile / college">
   </div>
 
   <div class="section">
     <button id="exportBtn">Export Event to Excel</button>
   </div>
 
-  <!-- TABLE SECTION -->
   <div class="section">
     <div class="section-title">Participants</div>
     <div class="table-wrapper">
@@ -199,45 +133,61 @@
 </div>
 
 <script>
-  const SHEET_ID="1I5r5Zy69lSOB3-0_kjm94Twe20zfU_Xz3oLbmRmXe7A";
-  const SHEET_NAME="Form Responses 1";
-  const IGNORE=["Not interested in Slot 1","Not interested in Slot 2","Not Interested"];
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}`;
+  const SHEET_ID = "1I5r5Zy69lSOB3-0_kjm94Twe20zfU_Xz3oLbmRmXe7A";
+  const SHEET_NAME = "Form Responses 1";
+  const IGNORE = ["Not interested in Slot 1","Not interested in Slot 2","Not Interested"];
 
-  let eventData={},allData=[],currentData=[];
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}`;
 
-  fetch(url).then(r=>r.text()).then(d=>{
-    const json=JSON.parse(d.substring(47).slice(0,-2));
-    json.table.rows.forEach(row=>{
-      const referral=row.c[6]?.v||"";
-      const student={
-        name:row.c[2]?.v||"",
-        email:row.c[3]?.v||"",
-        mobile:row.c[4]?.v||"",
-        referral,
-        college:row.c[7]?.v||""
-      };
-      [row.c[10]?.v,row.c[11]?.v].forEach(ev=>{
-        if(ev && !IGNORE.includes(ev)){
-          eventData[ev]=eventData[ev]||[];
-          eventData[ev].push(student);
-          if(referral) allData.push(student);
-        }
-      });
-    });
+  const eventData = {};
+  const uniqueUsers = new Map();
+  const referralCount = {};
 
-    overallCount.textContent=allData.length;
-    renderTop3();
-    populateEvents();
-  });
+  let currentData = [];
+
+  fetch(url)
+          .then(res => res.text())
+          .then(text => {
+            const json = JSON.parse(text.substring(47).slice(0, -2));
+            const rows = json.table.rows;
+
+            rows.forEach(r => {
+              const student = {
+                name: r.c[2]?.v || "",
+                email: r.c[3]?.v || "",
+                mobile: r.c[4]?.v || "",
+                referral: r.c[6]?.v || "",
+                college: r.c[7]?.v || ""
+              };
+
+              const key = student.email || student.mobile;
+              if (key && !uniqueUsers.has(key)) {
+                uniqueUsers.set(key, student);
+                if (student.referral) {
+                  referralCount[student.referral] = (referralCount[student.referral] || 0) + 1;
+                }
+              }
+
+              [r.c[10]?.v, r.c[11]?.v].forEach(ev => {
+                if (ev && !IGNORE.includes(ev)) {
+                  eventData[ev] = eventData[ev] || [];
+                  eventData[ev].push(student);
+                }
+              });
+            });
+
+            overallCount.textContent = uniqueUsers.size;
+            renderTop3();
+            populateEvents();
+          });
 
   function renderTop3(){
-    const map={};
-    allData.forEach(s=>map[s.referral]=(map[s.referral]||0)+1);
-    overallLeaderboard.innerHTML="";
-    Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,3)
+    overallLeaderboard.innerHTML = "";
+    Object.entries(referralCount)
+            .sort((a,b)=>b[1]-a[1])
+            .slice(0,3)
             .forEach(([r,c],i)=>{
-              overallLeaderboard.innerHTML+=`
+              overallLeaderboard.innerHTML += `
         <div class="leader-row">
           <span class="rank">#${i+1} ${r}</span>
           <strong>${c}</strong>
@@ -247,27 +197,28 @@
 
   function populateEvents(){
     Object.keys(eventData).sort().forEach(e=>{
-      const o=document.createElement("option");
-      o.value=e;o.textContent=e;
-      eventSelect.appendChild(o);
+      const opt = document.createElement("option");
+      opt.value = e;
+      opt.textContent = e;
+      eventSelect.appendChild(opt);
     });
   }
 
-  eventSelect.onchange=()=>{
+  eventSelect.onchange = () => {
     if(!eventSelect.value){
       eventSection.classList.add("hidden");
       return;
     }
-    currentData=eventData[eventSelect.value];
-    eventCountText.textContent=currentData.length;
+    currentData = eventData[eventSelect.value];
+    eventCountText.textContent = currentData.length;
     renderTable(currentData);
     eventSection.classList.remove("hidden");
   };
 
   function renderTable(data){
-    tableBody.innerHTML="";
+    tableBody.innerHTML = "";
     data.forEach((s,i)=>{
-      tableBody.innerHTML+=`
+      tableBody.innerHTML += `
       <tr>
         <td>${i+1}</td>
         <td>${s.name}</td>
@@ -279,24 +230,24 @@
     });
   }
 
-  searchInput.oninput=()=>{
-    const q=searchInput.value.toLowerCase();
-    renderTable(currentData.filter(s=>
-            s.name.toLowerCase().includes(q)||
-            s.referral.toLowerCase().includes(q)||
-            s.mobile.includes(q)||
+  searchInput.oninput = () => {
+    const q = searchInput.value.toLowerCase();
+    renderTable(currentData.filter(s =>
+            s.name.toLowerCase().includes(q) ||
+            s.mobile.includes(q) ||
+            s.referral.toLowerCase().includes(q) ||
             s.college.toLowerCase().includes(q)
     ));
   };
 
-  exportBtn.onclick=()=>{
-    let csv="Name,Email,Mobile,Referral,College\n";
+  exportBtn.onclick = () => {
+    let csv = "Name,Email,Mobile,Referral,College\n";
     currentData.forEach(s=>{
-      csv+=`"${s.name}","${s.email}","${s.mobile}","${s.referral}","${s.college}"\n`;
+      csv += `"${s.name}","${s.email}","${s.mobile}","${s.referral}","${s.college}"\n`;
     });
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
-    a.download=`${eventSelect.value.replace(/\s+/g,"_")}.xlsx`;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+    a.download = `${eventSelect.value.replace(/\s+/g,"_")}.csv`;
     a.click();
   };
 </script>
