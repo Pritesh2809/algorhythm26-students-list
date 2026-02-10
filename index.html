@@ -1,255 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ALGORHYTHM'26 – Dashboard</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ALGORHYTHM'26 – Admin Console</title>
 
-  <style>
-    :root{
-      --primary:#0f2a44;
-      --accent:#00bcd4;
-      --bg:#f4f6f9;
-      --card:#ffffff;
-      --muted:#6b7280;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,sans-serif;
-      background:var(--bg);
-      padding:14px;
-    }
-    .header{text-align:center;margin-bottom:16px}
-    .header h1{margin:0;font-size:1.4rem;color:var(--primary)}
-    .header p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+    <style>
+        :root{
+            --bg:#f5f7fb;
+            --card:#ffffff;
+            --border:#e6e9ef;
+            --primary:#2563eb;
+            --text:#1f2937;
+            --muted:#6b7280;
+            --online:#16a34a;
+            --spot:#ea580c;
+            --event:#64748b;
+        }
+        *{box-sizing:border-box}
+        body{
+            margin:0;
+            font-family:Inter,system-ui,-apple-system,sans-serif;
+            background:var(--bg);
+            color:var(--text);
+        }
+        .app{max-width:1400px;margin:auto;padding:20px}
 
-    .section{
-      background:var(--card);
-      border-radius:16px;
-      padding:16px;
-      margin-bottom:16px;
-      box-shadow:0 8px 18px rgba(0,0,0,.06);
-    }
-    .section-title{font-weight:700;color:var(--primary);margin-bottom:12px}
+        .header{margin-bottom:24px}
+        .header h1{margin:0;font-size:1.4rem}
+        .header p{margin:4px 0 0;font-size:13px;color:var(--muted)}
 
-    .stat-row{display:flex;justify-content:space-between;align-items:center}
-    .stat-value{font-size:1.6rem;font-weight:800;color:var(--accent)}
+        .card{
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:14px;
+            padding:16px;
+            margin-bottom:18px;
+        }
 
-    .leader-row{
-      display:flex;
-      justify-content:space-between;
-      padding:10px 12px;
-      background:#f1f5f9;
-      border-radius:12px;
-      margin-bottom:10px;
-    }
-    .rank{font-weight:700;color:var(--primary)}
+        .stats{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+            gap:14px;
+        }
+        .stat{border:1px solid var(--border);border-radius:12px;padding:16px}
+        .stat span{font-size:12px;color:var(--muted)}
+        .stat strong{display:block;margin-top:6px;font-size:1.8rem;color:var(--primary)}
 
-    select,input,button{
-      width:100%;
-      padding:14px;
-      font-size:16px;
-      border-radius:14px;
-      border:1px solid #d1d5db;
-    }
-    button{
-      background:var(--accent);
-      color:white;
-      border:none;
-      font-weight:600;
-    }
+        .controls{
+            display:grid;
+            grid-template-columns:1fr 240px;
+            gap:12px;
+        }
+        @media(max-width:768px){.controls{grid-template-columns:1fr}}
 
-    .table-wrapper{overflow-x:auto}
-    table{width:100%;min-width:720px;border-collapse:collapse}
-    thead{background:var(--primary);color:white}
-    th,td{padding:12px;font-size:14px;border-bottom:1px solid #e5e7eb}
-    tbody tr:nth-child(even){background:#f9fafb}
-    .hidden{display:none}
-  </style>
+        input,select{
+            width:100%;
+            padding:12px 14px;
+            border-radius:10px;
+            border:1px solid var(--border);
+            font-size:14px;
+        }
+
+        .table-wrap{
+            overflow:auto;
+            border-radius:12px;
+            border:1px solid var(--border);
+        }
+        table{
+            width:100%;
+            min-width:1100px;
+            border-collapse:collapse;
+        }
+        thead{
+            background:#f9fafb;
+            position:sticky;
+            top:0;
+        }
+        th,td{
+            padding:12px 14px;
+            font-size:13px;
+            border-bottom:1px solid var(--border);
+            vertical-align:top;
+        }
+        tbody tr:hover{background:#f3f4f6}
+
+        .badge{
+            font-size:11px;
+            padding:4px 10px;
+            border-radius:999px;
+            color:#fff;
+            font-weight:600;
+            display:inline-block;
+            margin-right:6px;
+            margin-bottom:4px;
+        }
+        .badge.online{background:var(--online)}
+        .badge.spot{background:var(--spot)}
+        .badge.event{
+            background:#e5e7eb;
+            color:#374151;
+            font-weight:500;
+        }
+
+        .hidden{display:none}
+
+        .leader{
+            display:flex;
+            justify-content:space-between;
+            padding:10px 12px;
+            border:1px solid var(--border);
+            border-radius:10px;
+            margin-top:10px;
+            font-size:14px;
+        }
+    </style>
 </head>
 
 <body>
+<div class="app">
 
-<div class="header">
-  <h1>ALGORHYTHM'26</h1>
-  <p>Mobile Admin Dashboard</p>
-</div>
-
-<div class="section">
-  <div class="stat-row">
-    <span>Total Registrations</span>
-    <span id="overallCount" class="stat-value">0</span>
-  </div>
-</div>
-
-<div class="section">
-  <div class="section-title">🏆 Top 3 Referrals</div>
-  <div id="overallLeaderboard"></div>
-</div>
-
-<div class="section">
-  <select id="eventSelect">
-    <option value="">Select Event</option>
-  </select>
-</div>
-
-<div id="eventSection" class="hidden">
-
-  <div class="section">
-    <div class="stat-row">
-      <span>Event Registrations</span>
-      <span id="eventCountText" class="stat-value">0</span>
+    <div class="header">
+        <h1>ALGORHYTHM'26</h1>
+        <p>Professional Registration Admin Console</p>
     </div>
-  </div>
 
-  <div class="section">
-    <input id="searchInput" placeholder="Search name / referral / mobile / college">
-  </div>
-
-  <div class="section">
-    <button id="exportBtn">Export Event to Excel</button>
-  </div>
-
-  <div class="section">
-    <div class="section-title">Participants</div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Mobile</th>
-          <th>Referral</th>
-          <th>College</th>
-        </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
+    <!-- STATS -->
+    <div class="card stats">
+        <div class="stat"><span>Total Registrations</span><strong id="totalCount">0</strong></div>
+        <div class="stat"><span>Online</span><strong id="onlineCount">0</strong></div>
+        <div class="stat"><span>Spot</span><strong id="spotCount">0</strong></div>
     </div>
-  </div>
+
+    <!-- LEADERBOARD -->
+    <div class="card">
+        <strong>Top Referrals</strong>
+        <div id="leaderboard"></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="card controls">
+        <input id="globalSearch" placeholder="Search name, email, mobile, college, event…" />
+        <select id="eventSelect">
+            <option value="">All Events</option>
+        </select>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card hidden" id="eventSection">
+        <input id="eventSearch" placeholder="Search within selected results…" style="margin-bottom:12px"/>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>College</th>
+                    <th>Registered Events</th>
+                    <th>Type</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
 
 </div>
 
 <script>
-  const SHEET_ID = "1I5r5Zy69lSOB3-0_kjm94Twe20zfU_Xz3oLbmRmXe7A";
-  const SHEET_NAME = "Form Responses 1";
-  const IGNORE = ["Not interested in Slot 1","Not interested in Slot 2","Not Interested"];
+    /* ================= CONFIG ================= */
+    const SHEETS=[
+        {id:"1I5r5Zy69lSOB3-0_kjm94Twe20zfU_Xz3oLbmRmXe7A",name:"Form Responses 1",type:"ONLINE"},
+        {id:"1QssSb2v6UH1XcNxaBYEBZmGDQKrqH78TtXdm5A8rTa0",name:"Form Responses 1",type:"SPOT"}
+    ];
+    const IGNORE=["Not interested in Slot 1","Not interested in Slot 2","Not Interested",""];
+    const REFRESH_INTERVAL=30000;
 
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}`;
+    /* ================= STATE ================= */
+    let users=new Map(); // email -> user
+    let eventData={}, referralCount={}, currentData=[];
 
-  const eventData = {};
-  const uniqueUsers = new Map();
-  const referralCount = {};
-
-  let currentData = [];
-
-  fetch(url)
-          .then(res => res.text())
-          .then(text => {
-            const json = JSON.parse(text.substring(47).slice(0, -2));
-            const rows = json.table.rows;
-
-            rows.forEach(r => {
-              const student = {
-                name: r.c[2]?.v || "",
-                email: r.c[3]?.v || "",
-                mobile: r.c[4]?.v || "",
-                referral: r.c[6]?.v || "",
-                college: r.c[7]?.v || ""
-              };
-
-              const key = student.email || student.mobile;
-              if (key && !uniqueUsers.has(key)) {
-                uniqueUsers.set(key, student);
-                if (student.referral) {
-                  referralCount[student.referral] = (referralCount[student.referral] || 0) + 1;
-                }
-              }
-
-              [r.c[10]?.v, r.c[11]?.v].forEach(ev => {
-                if (ev && !IGNORE.includes(ev)) {
-                  eventData[ev] = eventData[ev] || [];
-                  eventData[ev].push(student);
-                }
-              });
-            });
-
-            overallCount.textContent = uniqueUsers.size;
-            renderTop3();
-            populateEvents();
-          });
-
-  function renderTop3(){
-    overallLeaderboard.innerHTML = "";
-    Object.entries(referralCount)
-            .sort((a,b)=>b[1]-a[1])
-            .slice(0,3)
-            .forEach(([r,c],i)=>{
-              overallLeaderboard.innerHTML += `
-        <div class="leader-row">
-          <span class="rank">#${i+1} ${r}</span>
-          <strong>${c}</strong>
-        </div>`;
-            });
-  }
-
-  function populateEvents(){
-    Object.keys(eventData).sort().forEach(e=>{
-      const opt = document.createElement("option");
-      opt.value = e;
-      opt.textContent = e;
-      eventSelect.appendChild(opt);
-    });
-  }
-
-  eventSelect.onchange = () => {
-    if(!eventSelect.value){
-      eventSection.classList.add("hidden");
-      return;
+    /* ================= FETCH ================= */
+    async function fetchData(){
+        const rows=await Promise.all(
+            SHEETS.map(s=>
+                fetch(`https://docs.google.com/spreadsheets/d/${s.id}/gviz/tq?sheet=${encodeURIComponent(s.name)}&t=${Date.now()}`)
+                    .then(r=>r.text())
+                    .then(t=>{
+                        let rws=JSON.parse(t.match(/setResponse\(([\s\S]+)\);/)[1]).table.rows;
+                        if(s.type==="SPOT") rws=rws.slice(1);
+                        return rws.map(r=>({row:r,type:s.type}));
+                    })
+            )
+        );
+        processRows(rows.flat());
     }
-    currentData = eventData[eventSelect.value];
-    eventCountText.textContent = currentData.length;
-    renderTable(currentData);
-    eventSection.classList.remove("hidden");
-  };
 
-  function renderTable(data){
-    tableBody.innerHTML = "";
-    data.forEach((s,i)=>{
-      tableBody.innerHTML += `
-      <tr>
-        <td>${i+1}</td>
-        <td>${s.name}</td>
-        <td>${s.email}</td>
-        <td>${s.mobile}</td>
-        <td>${s.referral}</td>
-        <td>${s.college}</td>
-      </tr>`;
-    });
-  }
+    /* ================= PROCESS ================= */
+    function processRows(rows){
+        users.clear(); eventData={}; referralCount={};
+        let online=0, spot=0;
 
-  searchInput.oninput = () => {
-    const q = searchInput.value.toLowerCase();
-    renderTable(currentData.filter(s =>
-            s.name.toLowerCase().includes(q) ||
-            s.mobile.includes(q) ||
-            s.referral.toLowerCase().includes(q) ||
-            s.college.toLowerCase().includes(q)
-    ));
-  };
+        rows.forEach(({row,type})=>{
+            const email=(row.c[3]?.v||"").toLowerCase();
+            if(!email.includes("@")) return;
 
-  exportBtn.onclick = () => {
-    let csv = "Name,Email,Mobile,Referral,College\n";
-    currentData.forEach(s=>{
-      csv += `"${s.name}","${s.email}","${s.mobile}","${s.referral}","${s.college}"\n`;
-    });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
-    a.download = `${eventSelect.value.replace(/\s+/g,"_")}.csv`;
-    a.click();
-  };
+            let user=users.get(email);
+            if(!user){
+                user={
+                    name:row.c[2]?.v||"",
+                    email,
+                    mobile:row.c[4]?.v||"",
+                    college:row.c[7]?.v||"",
+                    type,
+                    events:new Set()
+                };
+                users.set(email,user);
+                type==="ONLINE"?online++:spot++;
+            }
+
+            [row.c[10]?.v,row.c[11]?.v].forEach(ev=>{
+                if(ev&&!IGNORE.includes(ev)){
+                    user.events.add(ev);
+                    (eventData[ev] ||= []).push(user);
+                }
+            });
+
+            const ref=row.c[6]?.v;
+            if(ref) referralCount[ref]=(referralCount[ref]||0)+1;
+        });
+
+        totalCount.textContent=users.size;
+        onlineCount.textContent=online;
+        spotCount.textContent=spot;
+        renderLeaderboard(); populateEvents();
+    }
+
+    /* ================= UI ================= */
+    function renderLeaderboard(){
+        leaderboard.innerHTML="";
+        Object.entries(referralCount).sort((a,b)=>b[1]-a[1]).slice(0,3)
+            .forEach(([r,c],i)=>{
+                leaderboard.innerHTML+=`<div class="leader"><span>#${i+1} ${r}</span><strong>${c}</strong></div>`;
+            });
+    }
+
+    function populateEvents(){
+        eventSelect.innerHTML='<option value="">All Events</option>';
+        Object.keys(eventData).sort().forEach(e=>{
+            eventSelect.add(new Option(`${e} (${eventData[e].length})`,e));
+        });
+    }
+
+    function renderTable(data){
+        tableBody.innerHTML="";
+        data.forEach((s,i)=>{
+            const eventsHTML=[...s.events].map(ev=>`<span class="badge event">${ev}</span>`).join("");
+            tableBody.innerHTML+=`
+   <tr>
+    <td>${i+1}</td>
+    <td>${s.name}</td>
+    <td>${s.email}</td>
+    <td>${s.mobile}</td>
+    <td>${s.college}</td>
+    <td>${eventsHTML}</td>
+    <td><span class="badge ${s.type==="ONLINE"?"online":"spot"}">${s.type}</span></td>
+   </tr>`;
+        });
+    }
+
+    /* ================= SEARCH ================= */
+    function filter(data,q){
+        q=q.toLowerCase();
+        return data.filter(s=>
+            `${s.name} ${s.email} ${s.mobile} ${s.college} ${[...s.events].join(" ")}`.toLowerCase().includes(q)
+        );
+    }
+
+    globalSearch.oninput=()=>{
+        const q=globalSearch.value.trim();
+        if(!q){eventSection.classList.add("hidden");return;}
+        currentData=filter([...users.values()],q);
+        renderTable(currentData);
+        eventSection.classList.remove("hidden");
+        eventSelect.value="";
+    };
+
+    eventSelect.onchange=()=>{
+        const ev=eventSelect.value;
+        globalSearch.value="";
+        if(!ev){eventSection.classList.add("hidden");return;}
+        currentData=eventData[ev];
+        renderTable(currentData);
+        eventSection.classList.remove("hidden");
+    };
+
+    eventSearch.oninput=()=>renderTable(filter(currentData,eventSearch.value));
+
+    fetchData(); setInterval(fetchData,REFRESH_INTERVAL);
 </script>
 
 </body>
