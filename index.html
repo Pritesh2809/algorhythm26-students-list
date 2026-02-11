@@ -1,306 +1,346 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ALGORHYTHM'26 – Admin Console</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ALGORHYTHM'26 – Admin Console</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --border:#e6e9ef;
+      --primary:#2563eb;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --online:#16a34a;
+      --spot:#ea580c;
+      --event:#64748b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .app{max-width:1400px;margin:auto;padding:20px}
+    .header{display:flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px;}
+    .header h1{margin:0;font-size:1.4rem}
+    .header p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+    #syncStatus{font-size: 11px; color: var(--muted); font-family: monospace;}
 
-    <style>
-        :root{
-            --bg:#f5f7fb;
-            --card:#ffffff;
-            --border:#e6e9ef;
-            --primary:#2563eb;
-            --text:#1f2937;
-            --muted:#6b7280;
-            --online:#16a34a;
-            --spot:#ea580c;
-            --event:#64748b;
-        }
-        *{box-sizing:border-box}
-        body{
-            margin:0;
-            font-family:Inter,system-ui,-apple-system,sans-serif;
-            background:var(--bg);
-            color:var(--text);
-        }
-        .app{max-width:1400px;margin:auto;padding:20px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px;
+      margin-bottom:18px;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:14px;
+    }
+    .stat{border:1px solid var(--border);border-radius:12px;padding:16px}
+    .stat span{font-size:12px;color:var(--muted)}
+    .stat strong{display:block;margin-top:6px;font-size:1.8rem;color:var(--primary)}
 
-        .header{margin-bottom:24px}
-        .header h1{margin:0;font-size:1.4rem}
-        .header p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+    .controls{
+      display:grid;
+      grid-template-columns:1fr 240px;
+      gap:12px;
+    }
+    @media(max-width:768px){.controls{grid-template-columns:1fr}}
 
-        .card{
-            background:var(--card);
-            border:1px solid var(--border);
-            border-radius:14px;
-            padding:16px;
-            margin-bottom:18px;
-        }
+    input,select{
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font-size:14px;
+      outline: none;
+    }
+    input:focus{border-color: var(--primary);}
 
-        .stats{
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-            gap:14px;
-        }
-        .stat{border:1px solid var(--border);border-radius:12px;padding:16px}
-        .stat span{font-size:12px;color:var(--muted)}
-        .stat strong{display:block;margin-top:6px;font-size:1.8rem;color:var(--primary)}
+    .table-wrap{
+      overflow:auto;
+      border-radius:12px;
+      border:1px solid var(--border);
+      max-height: 600px; /* Added scroll for large datasets */
+    }
+    table{
+      width:100%;
+      min-width:1100px;
+      border-collapse:collapse;
+    }
+    thead{
+      background:#f9fafb;
+      position:sticky;
+      top:0;
+      z-index: 10;
+    }
+    th,td{
+      padding:12px 14px;
+      font-size:13px;
+      border-bottom:1px solid var(--border);
+      text-align: left;
+    }
+    tbody tr:hover{background:#f3f4f6}
 
-        .controls{
-            display:grid;
-            grid-template-columns:1fr 240px;
-            gap:12px;
-        }
-        @media(max-width:768px){.controls{grid-template-columns:1fr}}
-
-        input,select{
-            width:100%;
-            padding:12px 14px;
-            border-radius:10px;
-            border:1px solid var(--border);
-            font-size:14px;
-        }
-
-        .table-wrap{
-            overflow:auto;
-            border-radius:12px;
-            border:1px solid var(--border);
-        }
-        table{
-            width:100%;
-            min-width:1100px;
-            border-collapse:collapse;
-        }
-        thead{
-            background:#f9fafb;
-            position:sticky;
-            top:0;
-        }
-        th,td{
-            padding:12px 14px;
-            font-size:13px;
-            border-bottom:1px solid var(--border);
-            vertical-align:top;
-        }
-        tbody tr:hover{background:#f3f4f6}
-
-        .badge{
-            font-size:11px;
-            padding:4px 10px;
-            border-radius:999px;
-            color:#fff;
-            font-weight:600;
-            display:inline-block;
-            margin-right:6px;
-            margin-bottom:4px;
-        }
-        .badge.online{background:var(--online)}
-        .badge.spot{background:var(--spot)}
-        .badge.event{
-            background:#e5e7eb;
-            color:#374151;
-            font-weight:500;
-        }
-
-        .hidden{display:none}
-
-        .leader{
-            display:flex;
-            justify-content:space-between;
-            padding:10px 12px;
-            border:1px solid var(--border);
-            border-radius:10px;
-            margin-top:10px;
-            font-size:14px;
-        }
-    </style>
+    .badge{
+      font-size:11px;
+      padding:4px 10px;
+      border-radius:999px;
+      color:#fff;
+      font-weight:600;
+      display:inline-block;
+      margin-right:4px;
+      margin-bottom:4px;
+    }
+    .badge.online{background:var(--online)}
+    .badge.spot{background:var(--spot)}
+    .badge.event{
+      background:#e5e7eb;
+      color:#374151;
+      font-weight:500;
+    }
+    .hidden{display:none}
+    .leader{
+      display:flex;
+      justify-content:space-between;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      margin-top:10px;
+      font-size:14px;
+    }
+  </style>
 </head>
-
 <body>
 <div class="app">
-
-    <div class="header">
-        <h1>ALGORHYTHM'26</h1>
-        <p>Professional Registration Admin Console</p>
+  <div class="header">
+    <div>
+      <h1>ALGORHYTHM'26</h1>
+      <p>Professional Registration Admin Console</p>
     </div>
+    <div id="syncStatus">Initializing...</div>
+  </div>
 
-    <!-- STATS -->
-    <div class="card stats">
-        <div class="stat"><span>Total Registrations</span><strong id="totalCount">0</strong></div>
-        <div class="stat"><span>Online</span><strong id="onlineCount">0</strong></div>
-        <div class="stat"><span>Spot</span><strong id="spotCount">0</strong></div>
+  <div class="card stats">
+    <div class="stat"><span>Total Registrations</span><strong id="totalCount">0</strong></div>
+    <div class="stat"><span>Online</span><strong id="onlineCount">0</strong></div>
+    <div class="stat"><span>Spot</span><strong id="spotCount">0</strong></div>
+  </div>
+
+  <div class="card">
+    <strong>Top Referrals</strong>
+    <div id="leaderboard"></div>
+  </div>
+
+  <div class="card controls">
+    <input id="globalSearch" placeholder="Search name, email, mobile, college, event…" autocomplete="off" />
+    <select id="eventSelect">
+      <option value="">All Events</option>
+    </select>
+  </div>
+
+  <div class="card hidden" id="eventSection">
+    <input id="eventSearch" placeholder="Refine search within this selection..." style="margin-bottom:12px" autocomplete="off"/>
+    <div class="table-wrap">
+      <table>
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Mobile</th>
+          <th>College</th>
+          <th>Registered Events</th>
+          <th>Type</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
     </div>
-
-    <!-- LEADERBOARD -->
-    <div class="card">
-        <strong>Top Referrals</strong>
-        <div id="leaderboard"></div>
-    </div>
-
-    <!-- FILTERS -->
-    <div class="card controls">
-        <input id="globalSearch" placeholder="Search name, email, mobile, college, event…" />
-        <select id="eventSelect">
-            <option value="">All Events</option>
-        </select>
-    </div>
-
-    <!-- TABLE -->
-    <div class="card hidden" id="eventSection">
-        <input id="eventSearch" placeholder="Search within selected results…" style="margin-bottom:12px"/>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Mobile</th>
-                    <th>College</th>
-                    <th>Registered Events</th>
-                    <th>Type</th>
-                </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
-    </div>
-
+  </div>
 </div>
 
 <script>
-    /* ================= CONFIG ================= */
-    const SHEETS=[
-        {id:"1I5r5Zy69lSOB3-0_kjm94Twe20zfU_Xz3oLbmRmXe7A",name:"Form Responses 1",type:"ONLINE"},
-        {id:"1QssSb2v6UH1XcNxaBYEBZmGDQKrqH78TtXdm5A8rTa0",name:"Form Responses 1",type:"SPOT"}
-    ];
-    const IGNORE=["Not interested in Slot 1","Not interested in Slot 2","Not Interested",""];
-    const REFRESH_INTERVAL=30000;
+  /* ================= CONFIG ================= */
+  const SHEETS=[
+    {id:"1I5r5Zy69lSOB3-0_kjm94Twe20zfU_Xz3oLbmRmXe7A",name:"Form Responses 1",type:"ONLINE"},
+    {id:"1QssSb2v6UH1XcNxaBYEBZmGDQKrqH78TtXdm5A8rTa0",name:"Form Responses 1",type:"SPOT"}
+  ];
+  const IGNORE=["Not interested in Slot 1","Not interested in Slot 2","Not Interested",""];
+  const REFRESH_INTERVAL=30000;
 
-    /* ================= STATE ================= */
-    let users=new Map(); // email -> user
-    let eventData={}, referralCount={}, currentData=[];
+  /* ================= STATE ================= */
+  let users=new Map();
+  let eventData={}, referralCount={}, currentData=[];
 
-    /* ================= FETCH ================= */
-    async function fetchData(){
-        const rows=await Promise.all(
-            SHEETS.map(s=>
-                fetch(`https://docs.google.com/spreadsheets/d/${s.id}/gviz/tq?sheet=${encodeURIComponent(s.name)}&t=${Date.now()}`)
-                    .then(r=>r.text())
-                    .then(t=>{
-                        let rws=JSON.parse(t.match(/setResponse\(([\s\S]+)\);/)[1]).table.rows;
-                        if(s.type==="SPOT") rws=rws.slice(1);
-                        return rws.map(r=>({row:r,type:s.type}));
-                    })
-            )
-        );
-        processRows(rows.flat());
+  /* ================= FETCH ================= */
+  async function fetchData(){
+    try {
+      const results = await Promise.all(
+              SHEETS.map(async s => {
+                const url = `https://docs.google.com/spreadsheets/d/${s.id}/gviz/tq?sheet=${encodeURIComponent(s.name)}&t=${Date.now()}`;
+                const r = await fetch(url);
+                const t = await r.text();
+                const json = JSON.parse(t.match(/setResponse\(([\s\S]+)\);/)[1]);
+                let rws = json.table.rows;
+                if(s.type === "SPOT") rws = rws.slice(1); // Assuming spot has an extra header row
+                return rws.map(r => ({row: r, type: s.type}));
+              })
+      );
+      processRows(results.flat());
+      document.getElementById('syncStatus').textContent = `Last sync: ${new Date().toLocaleTimeString()}`;
+    } catch (err) {
+      console.error("Fetch failed:", err);
+      document.getElementById('syncStatus').textContent = "Sync failed. Check connection.";
+    }
+  }
+
+  /* ================= PROCESS ================= */
+  function processRows(rows){
+    users.clear(); eventData={}; referralCount={};
+    let onlineCountNum = 0, spotCountNum = 0;
+
+    rows.forEach(({row,type})=>{
+      const email = (row.c[3]?.v || "").toString().toLowerCase().trim();
+      if(!email || !email.includes("@")) return;
+
+      let user = users.get(email);
+      if(!user){
+        user = {
+          name: row.c[2]?.v || "N/A",
+          email,
+          mobile: row.c[4]?.v || "N/A",
+          college: row.c[7]?.v || "N/A",
+          type,
+          events: new Set()
+        };
+        users.set(email, user);
+        type === "ONLINE" ? onlineCountNum++ : spotCountNum++;
+      }
+
+      // Collecting Events from Slot 1 and Slot 2 columns (index 10 and 11)
+      [row.c[10]?.v, row.c[11]?.v].forEach(ev => {
+        if(ev && !IGNORE.includes(ev)){
+          user.events.add(ev);
+          (eventData[ev] ||= []).push(user);
+        }
+      });
+
+      // Referral count
+      const ref = row.c[6]?.v;
+      if(ref) referralCount[ref] = (referralCount[ref] || 0) + 1;
+    });
+
+    document.getElementById('totalCount').textContent = users.size;
+    document.getElementById('onlineCount').textContent = onlineCountNum;
+    document.getElementById('spotCount').textContent = spotCountNum;
+
+    renderLeaderboard();
+    populateEvents();
+
+    // Refresh the current view if user is looking at one
+    if(!eventSection.classList.contains('hidden')){
+      refreshView();
+    }
+  }
+
+  /* ================= UI ================= */
+  function renderLeaderboard(){
+    const lb = document.getElementById('leaderboard');
+    const sorted = Object.entries(referralCount).sort((a,b) => b[1] - a[1]).slice(0,3);
+    lb.innerHTML = sorted.map(([r,c], i) =>
+            `<div class="leader"><span>#${i+1} ${r}</span><strong>${c}</strong></div>`
+    ).join('');
+  }
+
+  function populateEvents(){
+    const sel = document.getElementById('eventSelect');
+    const currentVal = sel.value;
+    let html = '<option value="">All Events</option>';
+    Object.keys(eventData).sort().forEach(e => {
+      html += `<option value="${e}">${e} (${eventData[e].length})</option>`;
+    });
+    sel.innerHTML = html;
+    sel.value = currentVal;
+  }
+
+  // High-performance table rendering
+  function renderTable(data){
+    const tbody = document.getElementById('tableBody');
+    if(data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No records found</td></tr>';
+      return;
     }
 
-    /* ================= PROCESS ================= */
-    function processRows(rows){
-        users.clear(); eventData={}; referralCount={};
-        let online=0, spot=0;
+    const html = data.map((s, i) => {
+      const eventsHTML = [...s.events].map(ev => `<span class="badge event">${ev}</span>`).join("");
+      const typeClass = s.type === "ONLINE" ? "online" : "spot";
+      return `<tr>
+                <td>${i+1}</td>
+                <td><strong>${s.name}</strong></td>
+                <td>${s.email}</td>
+                <td>${s.mobile}</td>
+                <td>${s.college}</td>
+                <td>${eventsHTML}</td>
+                <td><span class="badge ${typeClass}">${s.type}</span></td>
+            </tr>`;
+    }).join('');
 
-        rows.forEach(({row,type})=>{
-            const email=(row.c[3]?.v||"").toLowerCase();
-            if(!email.includes("@")) return;
+    tbody.innerHTML = html;
+  }
 
-            let user=users.get(email);
-            if(!user){
-                user={
-                    name:row.c[2]?.v||"",
-                    email,
-                    mobile:row.c[4]?.v||"",
-                    college:row.c[7]?.v||"",
-                    type,
-                    events:new Set()
-                };
-                users.set(email,user);
-                type==="ONLINE"?online++:spot++;
-            }
+  /* ================= SEARCH & FILTER ================= */
+  function filterData(data, q){
+    if(!q) return data;
+    q = q.toLowerCase();
+    return data.filter(s =>
+            s.name.toLowerCase().includes(q) ||
+            s.email.toLowerCase().includes(q) ||
+            s.mobile.toString().includes(q) ||
+            s.college.toLowerCase().includes(q) ||
+            [...s.events].some(e => e.toLowerCase().includes(q))
+    );
+  }
 
-            [row.c[10]?.v,row.c[11]?.v].forEach(ev=>{
-                if(ev&&!IGNORE.includes(ev)){
-                    user.events.add(ev);
-                    (eventData[ev] ||= []).push(user);
-                }
-            });
+  function refreshView(){
+    const gQ = globalSearch.value.trim();
+    const ev = eventSelect.value;
+    const subQ = eventSearch.value.trim();
 
-            const ref=row.c[6]?.v;
-            if(ref) referralCount[ref]=(referralCount[ref]||0)+1;
-        });
-
-        totalCount.textContent=users.size;
-        onlineCount.textContent=online;
-        spotCount.textContent=spot;
-        renderLeaderboard(); populateEvents();
+    if(ev) {
+      currentData = eventData[ev] || [];
+    } else if(gQ) {
+      currentData = filterData([...users.values()], gQ);
+    } else {
+      eventSection.classList.add("hidden");
+      return;
     }
 
-    /* ================= UI ================= */
-    function renderLeaderboard(){
-        leaderboard.innerHTML="";
-        Object.entries(referralCount).sort((a,b)=>b[1]-a[1]).slice(0,3)
-            .forEach(([r,c],i)=>{
-                leaderboard.innerHTML+=`<div class="leader"><span>#${i+1} ${r}</span><strong>${c}</strong></div>`;
-            });
-    }
+    const filtered = filterData(currentData, subQ);
+    renderTable(filtered);
+    eventSection.classList.remove("hidden");
+  }
 
-    function populateEvents(){
-        eventSelect.innerHTML='<option value="">All Events</option>';
-        Object.keys(eventData).sort().forEach(e=>{
-            eventSelect.add(new Option(`${e} (${eventData[e].length})`,e));
-        });
-    }
+  globalSearch.oninput = () => {
+    if(globalSearch.value.trim()) eventSelect.value = "";
+    refreshView();
+  };
 
-    function renderTable(data){
-        tableBody.innerHTML="";
-        data.forEach((s,i)=>{
-            const eventsHTML=[...s.events].map(ev=>`<span class="badge event">${ev}</span>`).join("");
-            tableBody.innerHTML+=`
-   <tr>
-    <td>${i+1}</td>
-    <td>${s.name}</td>
-    <td>${s.email}</td>
-    <td>${s.mobile}</td>
-    <td>${s.college}</td>
-    <td>${eventsHTML}</td>
-    <td><span class="badge ${s.type==="ONLINE"?"online":"spot"}">${s.type}</span></td>
-   </tr>`;
-        });
-    }
+  eventSelect.onchange = () => {
+    if(eventSelect.value) globalSearch.value = "";
+    refreshView();
+  };
 
-    /* ================= SEARCH ================= */
-    function filter(data,q){
-        q=q.toLowerCase();
-        return data.filter(s=>
-            `${s.name} ${s.email} ${s.mobile} ${s.college} ${[...s.events].join(" ")}`.toLowerCase().includes(q)
-        );
-    }
+  eventSearch.oninput = () => refreshView();
 
-    globalSearch.oninput=()=>{
-        const q=globalSearch.value.trim();
-        if(!q){eventSection.classList.add("hidden");return;}
-        currentData=filter([...users.values()],q);
-        renderTable(currentData);
-        eventSection.classList.remove("hidden");
-        eventSelect.value="";
-    };
-
-    eventSelect.onchange=()=>{
-        const ev=eventSelect.value;
-        globalSearch.value="";
-        if(!ev){eventSection.classList.add("hidden");return;}
-        currentData=eventData[ev];
-        renderTable(currentData);
-        eventSection.classList.remove("hidden");
-    };
-
-    eventSearch.oninput=()=>renderTable(filter(currentData,eventSearch.value));
-
-    fetchData(); setInterval(fetchData,REFRESH_INTERVAL);
+  // Initial Start
+  fetchData();
+  setInterval(fetchData, REFRESH_INTERVAL);
 </script>
-
 </body>
 </html>
